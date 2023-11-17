@@ -1,13 +1,6 @@
-import sklearn
 from net import LRNet
-import torch
 import dataloader as dlr
-from torch.utils.data import DataLoader
-from torch.autograd import Variable
-import torch.nn as nn
-import math
-from tqdm import tqdm
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from Jtools import *
 
 def train():
     batchsize = 512*512
@@ -18,9 +11,9 @@ def train():
 
     model = LRNet()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=1e-3)
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [10, 20], 0.1)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [70, 140], 0.1)
     loss_func = nn.CrossEntropyLoss(weight=torch.Tensor([1/9, 1]))
-    epochs = 20
+    epochs = 200
     for epoch in range(epochs):
         # training-----------------------------------
         model.train()
@@ -72,7 +65,10 @@ def train():
             val_rec = recall_score(batch_y, pred)
             val_f1 = f1_score(batch_y, pred)
             print(f'epoch:{epoch + 1}/{epochs}, val_loss:{eval_loss:.4f}, val_acc:{val_acc:.4f}, val_pre:{val_pre:.4f}, val_rec:{val_rec:.4f}, val_f1:{val_f1:.4f}')
-        # torch.save(model.state_dict(), 'output/params_' + str(epoch + 1) + '.pth')
+        if (epoch + 1) % 10 == 0:
+            if not exists('output'):
+                mkdir('output')
+            save(model.state_dict(), 'output/params_' + str(epoch + 1) + '.pth')
 
 if __name__ == '__main__':
     train()
