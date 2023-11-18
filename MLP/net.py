@@ -1,8 +1,8 @@
-import torch.nn as nn
+from Jtools import *
 
-class LRNet(nn.Module):
+class MLPNet(nn.Module):
     def __init__(self, input_size=3, output_size=2):
-        super(LRNet, self).__init__()
+        super(MLPNet, self).__init__()
         self.dense = nn.Sequential(
             nn.Linear(input_size, 10),
             nn.ReLU(),

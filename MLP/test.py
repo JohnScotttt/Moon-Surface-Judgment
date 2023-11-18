@@ -1,11 +1,11 @@
-from net import LRNet
+from net import MLPNet
 from Jtools import *
 
 image_path = cmd.argv[1]
 test_image = imread(image_path)
 height, width, _ = test_image.shape
 
-model = LRNet()
+model = MLPNet()
 model.load_state_dict(torch.load('output/params_150.pth'))
 model.eval()
 
