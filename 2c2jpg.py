@@ -15,5 +15,5 @@ def convert_2C_to_jpg(floder_path):
                 f.close()
 
 if __name__ == '__main__':
-    floder_path = cmd.argv[1]
+    floder_path = "D:/data/moon"
     convert_2C_to_jpg(floder_path)

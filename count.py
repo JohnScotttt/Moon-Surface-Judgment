@@ -1,6 +1,6 @@
 from Jtools import *
 
-f = open('data/txt_data/total.txt', 'r')
+f = open('data/ML_txt_data/total.txt', 'r')
 data = f.readlines()
 print(f'Total data volume: {len(data)}')
 label_0 = 0

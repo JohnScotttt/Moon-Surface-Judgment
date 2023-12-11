@@ -14,9 +14,8 @@ def json_to_mask(label_name):
 
 if __name__ == '__main__':
     fill_color = (1, 0, 128)
-    root_dir = cmd.argv[1]
+    root_dir = "data"
     refresh(join(root_dir, 'masks'))
-    mkdir(join(root_dir, 'masks'))
     for i in tqdm(listdir(join(root_dir, "annotations"))):
         label_name = i[:-5]
         json_to_mask(label_name)

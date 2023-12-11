@@ -4,29 +4,30 @@ sys.path.append('..')
 from Jtools import *
 
 def train():
-    batchsize = 1024
-    train_data = dlr.txtDataset('../data/ML_txt_data/train.txt')
-    val_data = dlr.txtDataset('../data/ML_txt_data/val.txt')
+    batchsize = 16
+    train_data = dlr.imgDataset('../data/DL_txt_data/train.txt', transform=transforms.ToTensor())
+    val_data = dlr.imgDataset('../data/DL_txt_data/val.txt', transform=transforms.ToTensor())
     train_loader = DataLoader(dataset=train_data, batch_size=batchsize, shuffle=True)
     val_loader = DataLoader(dataset=val_data, batch_size=len(val_data), shuffle=True)
 
-    model = MLPNet()
+    model = UNet()
     model.cuda()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=1e-3)
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [30, 60], 0.1)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [70, 140], 0.1)
     loss_func = nn.CrossEntropyLoss()
-    epochs = 100
+    epochs = 200
     best_f1 = 0
-    confirm('output')
+    # refresh('output')
     for epoch in range(epochs):
         # training-----------------------------------
         model.train()
         train_loss = 0
         score = Score()
-        for batch, (batch_x, batch_y) in enumerate(tqdm(train_loader)):
+        for batch_x, batch_y in tqdm(train_loader):
             batch_x, batch_y = Variable(batch_x.cuda()), Variable(batch_y.cuda())
+            batch_y = batch_y.squeeze(1)
             out = model(batch_x)
-            loss = loss_func(out, batch_y)
+            loss = loss_func(out, batch_y.to(dtype=torch.long))
             train_loss += loss.item()
             pred = torch.max(out, 1)[1]
             score.sum(pred, batch_y)
@@ -45,20 +46,21 @@ def train():
         iou_list.append(train_iou)
 
         # evaluation--------------------------------
-        # model.eval()
-        # eval_loss = 0
-        # score = Score()
-        # for batch_x, batch_y in val_loader:
-        #     batch_x, batch_y = Variable(batch_x.cuda()), Variable(batch_y.cuda())
-        #     out = model(batch_x)
-        #     loss = loss_func(out, batch_y)
-        #     eval_loss += loss.item()
-        #     pred = torch.max(out, 1)[1]
-        #     score.sum(pred, batch_y)
-        #     val_acc, val_pre, val_rec, val_f1, val_iou = score.calculate()
-            # print(f'epoch:{epoch + 1}/{epochs}, val_loss:{eval_loss:.4f}, val_acc:{val_acc:.4f}, '
-            #       f'val_pre:{val_pre:.4f}, val_rec:{val_rec:.4f}, val_f1:{val_f1:.4f}')
-        # if val_f1 > best_f1:
+        model.eval()
+        eval_loss = 0
+        score = Score()
+        for batch_x, batch_y in val_loader:
+            batch_x, batch_y = Variable(batch_x.cuda()), Variable(batch_y.cuda())
+            batch_y = batch_y.squeeze(1)
+            out = model(batch_x)
+            loss = loss_func(out, batch_y.to(dtype=torch.long))
+            eval_loss += loss.item()
+            pred = torch.max(out, 1)[1]
+            score.sum(pred, batch_y)
+            val_acc, val_pre, val_rec, val_f1, val_iou = score.calculate()
+            print(f'epoch:{epoch + 1}/{epochs}, val_loss:{eval_loss:.4f}, val_acc:{val_acc:.4f}, '
+                  f'val_pre:{val_pre:.4f}, val_rec:{val_rec:.4f}, val_f1:{val_f1:.4f}')
+        # if best_f1 < val_f1:
         #     best_f1 = val_f1
         #     save(model.state_dict(), 'output/params_' + str(epoch + 1) + '.pth')
 
